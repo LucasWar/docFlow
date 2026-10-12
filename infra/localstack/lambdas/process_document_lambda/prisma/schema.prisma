@@ -1,0 +1,126 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum StatusDocument {
+  UPLOADED
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum RevokedReason {
+  LOGOUT
+  EXPIRES
+  REFRESH
+}
+
+model User {
+  id            String     @id @default(uuid()) @db.Uuid
+  name          String
+  email         String     @unique
+  passworldHash String     @map("passworld_hash")
+  createdAt     DateTime   @default(now()) @map("created_at")
+  deletedAt     DateTime?  @map("deleted_at")
+  documents     Document[]
+  sessions      Session[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model Document {
+  id           String         @id @default(uuid()) @db.Uuid
+  userId       String         @map("user_id") @db.Uuid
+  fileName     String         @map("file_name")
+  storageKey   String         @map("storage_key")
+  size         Float
+  pageCount    Int?           @map("page_count")
+  status       StatusDocument
+  errorMessage String?        @map("error_message")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  processedAt  DateTime?      @map("processed_at")
+  updatedAt    DateTime?      @map("updated_at")
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  pages          DocumentPage[]
+  documentChunks DocumentChunk[]
+  processingJobs ProcessingJobs[]
+
+  @@map("documents")
+}
+
+model DocumentPage {
+  id             String          @id @default(uuid()) @db.Uuid
+  documentId     String          @map("document_id") @db.Uuid
+  pageNumber     Int             @map("page_number")
+  content        String
+  createdAt      DateTime        @default(now()) @map("created_at")
+  document       Document        @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  documentChunks DocumentChunk[]
+
+  @@map("documents_pages")
+}
+
+model DocumentChunk {
+  id         String   @id @default(uuid()) @db.Uuid
+  documentId String   @map("document_id") @db.Uuid
+  pageId     String   @map("page_id") @db.Uuid
+  chunkIndex String   @map("chunk_index")
+  content    String
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  embeddingModel String?                     @map("embedding_model")
+  embedding      Unsupported("vector(384)")?
+
+  page     DocumentPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  document Document     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@map("document_chunks")
+}
+
+model ProcessingJobs {
+  id         String         @id @default(uuid()) @db.Uuid
+  documentId String         @map("document_id") @db.Uuid
+  status     StatusDocument
+  attempts   Int
+  error      String
+  startedAt  DateTime       @map("started_at")
+  finishedAt DateTime?      @map("finished_at")
+  createdAt  DateTime       @default(now()) @map("created_at")
+  document   Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model Session {
+  id     String @id @unique @default(uuid())
+  userId String @db.Uuid
+
+  refreshTokenJti         String  @unique
+  previousRefreshTokenJti String?
+
+  refreshExpiresAt DateTime
+
+  revokedReason RevokedReason? @map("revoked_reason")
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime? @map("update_at")
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+
+  deviceName String?
+  userAgent  String?
+  ipAddress  String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, revokedAt])
+  @@map("session")
+}

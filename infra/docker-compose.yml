@@ -1,0 +1,52 @@
+services:
+  localstack:
+    image: localstack/localstack:latest
+    container_name: docflow-localstack
+    restart: unless-stopped
+
+    ports:
+      - "4566:4566"
+
+    environment:
+      LOCALSTACK_AUTH_TOKEN: ${LOCALSTACK_AUTH_TOKEN}
+
+      SERVICES: s3,sqs,lambda,cloudwatch,iam,logs
+
+      LAMBDA_DOCKER_FLAGS: >-
+        --add-host=host.docker.internal:host-gateway
+
+    volumes:
+      - "./localstack:/etc/localstack/init/ready.d"
+      - "./localstack/lambdas/embedding_lambda/index.zip:/opt/lambdas/embedding_lambda/index.zip"
+      - "./localstack/lambdas/embedding_lambda/env.local.json:/opt/lambdas/embedding_lambda/env.local.json"
+      - "./localstack/lambdas/process_document_lambda/index.zip:/opt/lambdas/process_document_lambda/index.zip"
+      - "./localstack/lambdas/process_document_lambda/env.local.json:/opt/lambdas/process_document_lambda/env.local.json"
+      - "./localstack_data:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - docflow
+
+  embeddings-service:
+    platform: linux/amd64
+    build:
+      context: ./embedding-service
+    container_name: local-embeddings
+    ports:
+      - "8000:8000"
+    environment:
+      MODEL_DIR: /opt/model
+      ORT_THREADS: "2"
+      MAX_LENGTH: "256"
+    restart: unless-stopped
+    mem_limit: 1g
+    cpus: 2.0
+    networks:
+      - docflow
+
+networks:
+  docflow:
+    external: true
+
+volumes:
+  localstack_data:
+  # embedding-model-cache:
