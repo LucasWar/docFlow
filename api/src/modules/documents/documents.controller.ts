@@ -6,6 +6,7 @@ import {
   Get,
   Param,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { DocumentsService } from './documents.service';
 import { AuthenticateGuard } from 'src/shared/guards/auth.guard';
@@ -44,6 +45,24 @@ export class DocumentsController {
     @Body('searchText') searchText: string,
   ) {
     return this.documentsService.search(userId, searchText);
+  }
+
+  @Delete(':id')
+  @UseGuards(AuthenticateGuard)
+  deleteDocument(
+    @CurrentUser() userId: string,
+    @Param('id') documentId: string,
+  ) {
+    return this.documentsService.deleteDocument(userId, documentId);
+  }
+
+  @Get(':id/download')
+  @UseGuards(AuthenticateGuard)
+  downloadDocument(
+    @CurrentUser() userId: string,
+    @Param('id') documentId: string,
+  ) {
+    return this.documentsService.downloadDocument(userId, documentId);
   }
 
   // @Get('listdocuemnts/pages/:id')

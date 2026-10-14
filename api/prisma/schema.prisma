@@ -39,6 +39,7 @@ model Document {
   id           String         @id @default(uuid()) @db.Uuid
   userId       String         @map("user_id") @db.Uuid
   fileName     String         @map("file_name")
+  fileKey      String         @map("file_key")
   storageKey   String         @map("storage_key")
   size         Float
   pageCount    Int?           @map("page_count")

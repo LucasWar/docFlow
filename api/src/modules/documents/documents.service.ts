@@ -1,16 +1,20 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateDocumentDto } from './dto/create-document.dto';
 import { DocumentsRepository } from './document.repository';
 import { StatusDocument } from './type/status-documents.enum';
 import { EmbeddingsService } from '../embeddings/embeddings.service';
+import { S3ClientService } from '../s3-client/s3-client.service';
 
 @Injectable()
 export class DocumentsService {
   constructor(
     private readonly documentRepository: DocumentsRepository,
     private readonly embeddingsService: EmbeddingsService,
+    private readonly s3ClientService: S3ClientService,
   ) {}
 
   async upload(createDocumentDto: CreateDocumentDto, userId: string) {
@@ -32,7 +36,7 @@ export class DocumentsService {
       throw new BadRequestException('Document is not create');
     }
 
-    const url = await this.presigend(keyFile);
+    const url = await this.s3ClientService.presigned(keyFile);
 
     return { url };
   }
@@ -50,32 +54,34 @@ export class DocumentsService {
 
     const vector = `[${result.join(',')}]`;
 
-    return await this.documentRepository.searchByVectot(userId, vector);
+    return await this.documentRepository.searchHybrid(userId, vector, question);
   }
 
-  private async presigend(keyFile: string) {
-    const secretAccessKey = process.env.S3_SECRET_ACCESS_KEY;
-    const accessKeyId = process.env.S3_ACCESS_ID;
+  async deleteDocument(userId: string, documentId: string) {
+    const document = await this.documentRepository.findDocumentById(
+      userId,
+      documentId,
+    );
 
-    if (!secretAccessKey || !accessKeyId) {
-      throw new BadRequestException('Incorrent credentials');
+    if (!document) {
+      throw new NotFoundException('Document not found');
     }
 
-    const s3Client = new S3Client({
-      endpoint: 'http://localhost:4566',
-      forcePathStyle: true,
-      region: 'us-east-1',
-      credentials: {
-        accessKeyId,
-        secretAccessKey,
-      },
-    });
+    await this.s3ClientService.deleteObjectS3(document.fileName);
 
-    const command = new PutObjectCommand({
-      Bucket: 'documentsflows3',
-      Key: keyFile,
-    });
+    await this.documentRepository.deleteDocumentById(userId, documentId);
+  }
 
-    return await getSignedUrl(s3Client, command, { expiresIn: 60 });
+  async downloadDocument(userId: string, documentId: string) {
+    const document = await this.documentRepository.findDocumentById(
+      userId,
+      documentId,
+    );
+
+    if (!document) {
+      throw new NotFoundException('Document not found');
+    }
+
+    return await this.s3ClientService.dowloadObjectS3(document.fileName);
   }
 }

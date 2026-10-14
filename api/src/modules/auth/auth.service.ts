@@ -138,9 +138,13 @@ export class AuthService {
         },
       );
 
+    console.log(payloadRefreshToken);
+
     if (!payloadRefreshToken) {
       throw new UnauthorizedException('Token inválido ou expirado');
     }
+
+    console.log(payloadRefreshToken);
 
     const recordRefreshToken = await this.authRepository.findOneByJti(
       payloadRefreshToken.jti,

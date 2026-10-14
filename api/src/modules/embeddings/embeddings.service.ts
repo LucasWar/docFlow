@@ -13,7 +13,8 @@ interface LocalEmbeddingResponse {
 export class EmbeddingsService {
   private readonly logger = new Logger(EmbeddingsService.name);
 
-  private readonly url = 'http://localhost:8000/embeddings';
+  private readonly url =
+    process.env.MODEL_URL ?? 'http://localhost:8000/embeddings';
 
   private readonly dimensions = 384;
 
