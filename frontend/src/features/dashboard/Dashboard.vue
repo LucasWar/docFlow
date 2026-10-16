@@ -17,9 +17,9 @@ const exampleQuestions = [
   <!-- Mobile: coluna com scroll, conteúdo no topo e cards no fluxo normal.
        Desktop (xl): tela fixa, conteúdo centralizado e cards colados no rodapé. -->
   <div
-    class="min-h-dvh flex flex-col items-center gap-10 px-4 pt-12 pb-6
+    class="min-h-full flex flex-col items-center gap-10 px-4 pt-12 pb-6
            md:pt-24
-           xl:h-dvh xl:pt-60 xl:pb-0 xl:gap-0 xl:relative xl:overflow-hidden"
+           xl:h-full xl:pt-60 xl:pb-0 xl:gap-0 xl:relative xl:overflow-hidden"
   >
     <!-- Busca -->
     <div class="w-full max-w-280">

@@ -16,7 +16,7 @@ import AvatarImage from '@/components/ui/avatar/AvatarImage.vue'
 
 const navItems = [
   { to: '/', label: 'Início', icon: HouseIcon },
-  { to: '/documentos', label: 'Documentos', icon: FileTextIcon },
+  { to: '/documents', label: 'Documentos', icon: FileTextIcon },
   { to: '/buscar', label: 'Buscar', icon: SearchIcon },
   { to: '/configuracoes', label: 'Configurações', icon: SettingsIcon },
 ]
@@ -86,7 +86,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             v-for="item in navItems"
             :key="item.to"
             :to="item.to"
-            active-class="bg-cyan-600/30"
+            exact-active-class="bg-cyan-600/30"
             class="flex items-center gap-3 rounded-xl px-3 py-3
                    text-lg font-medium text-white transition-colors
                    hover:bg-cyan-600/20 lg:text-xl"

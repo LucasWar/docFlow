@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Login from '@/features/auth/view/Login.vue'
 import MenuLayout from '@/layouts/MenuLayout.vue'
 import Dashboard from '@/features/dashboard/Dashboard.vue'
-
+import UploadDocuments from '@/features/documents/UploadDocuments.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -17,6 +17,10 @@ const router = createRouter({
         {
           path: '/',
           component: Dashboard,
+        },
+        {
+          path: '/documents',
+          component: UploadDocuments,
         },
       ],
     },
