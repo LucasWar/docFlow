@@ -1,68 +1,73 @@
 <script setup lang="ts">
-import Button from '@/components/ui/button/Button.vue'
-import Input from '@/components/ui/input/Input.vue'
-import { SearchIcon } from '@lucide/vue'
-import { FileIcon, TextIcon, FileTextIcon } from 'lucide-vue-next'
-import DashboardCard from './components/DashboardCard.vue'
+  import { FileIcon, TextIcon, FileTextIcon } from 'lucide-vue-next'
+  import DashboardCard from './components/DashboardCard.vue'
+  import Card from '@/components/ui/card/Card.vue'
+  import CardHeader from '@/components/ui/card/CardHeader.vue'
+  import CardContent from '@/components/ui/card/CardContent.vue'
 
-const exampleQuestions = [
-  'Qual o prazo para pagamento previsto no contrato?',
-  'Quais são as obrigações da contratada?',
-  'Existe multa em caso de atraso?',
-  'Quais documentos estão relacionados ao contrato?',
-]
+  import DocumentList from './components/DocumentList.vue'
+import { DocumentStatus } from '../documents/enums/document-status.ts'
+
+  const documents = [
+    {
+      title: "teste 1",
+      size: 8000,
+      date: new Date(),
+      status: DocumentStatus.COMPLETED
+    },
+    {
+      title: "teste 1",
+      size: 8000,
+      date: new Date(),
+      status: DocumentStatus.COMPLETED
+    },
+    {
+      title: "teste 1",
+      size: 8000,
+      date: new Date(),
+      status: DocumentStatus.COMPLETED
+    },
+    {
+      title: "teste 1",
+      size: 8000,
+      date: new Date(),
+      status: DocumentStatus.COMPLETED
+    },
+    {
+      title: "teste 1",
+      size: 8000,
+      date: new Date(),
+      status: DocumentStatus.COMPLETED
+    },
+    {
+      title: "teste 1",
+      size: 8000,
+      date: new Date(),
+      status: DocumentStatus.COMPLETED
+    },
+    {
+      title: "teste 1",
+      size: 8000,
+      date: new Date(),
+      status: DocumentStatus.COMPLETED
+    }
+  ]
 </script>
 
 <template>
-  <!-- Mobile: coluna com scroll, conteúdo no topo e cards no fluxo normal.
-       Desktop (xl): tela fixa, conteúdo centralizado e cards colados no rodapé. -->
-  <div
-    class="min-h-full flex flex-col items-center gap-10 px-4 pt-12 pb-6
-           md:pt-24
-           xl:h-full xl:pt-60 xl:pb-0 xl:gap-0 xl:relative xl:overflow-hidden"
-  >
-    <!-- Busca -->
-    <div class="w-full max-w-280">
-      <div class="flex flex-col items-center justify-center gap-2 pb-8 text-center md:pb-12 xl:pb-15">
-        <span class="font-bold text-xl sm:text-2xl">Olá, João! 👋</span>
-        <span class="text-gray-600/80 font-medium">O que você gostaria de fazer hoje?</span>
-      </div>
+  <!-- Mobile: tudo empilhado, a página rola dentro do <main> do layout.
+       Desktop (xl): a página ocupa 100% da altura e a área de baixo estica. -->
+  <div class="flex min-h-full flex-col gap-6 p-4 md:p-6 xl:h-full">
+    <!-- Título -->
+    <header class="flex flex-col items-start gap-1">
+      <span class="text-xl font-bold sm:text-2xl">Olá, Lucas Warley ! 👋</span>
+      <span class="font-medium text-gray-600/80">
+        Aqui está um resumo geral das suas atividades no DocFlow
+      </span>
+    </header>
 
-      <div class="flex flex-col gap-6">
-        <div class="relative">
-          <Input
-            class="w-full h-12 pl-12 pr-14 bg-white"
-            placeholder="Faça uma pergunta sobre seus documentos..."
-          />
-          <SearchIcon class="absolute left-4 top-4 w-4 h-4" />
-          <Button class="absolute right-2 top-1 w-10 h-10">
-            <SearchIcon class="w-6 h-6" />
-          </Button>
-        </div>
-
-        <div class="flex flex-col gap-4 md:gap-5">
-          <span class="text-gray-600/80">Exemplo de perguntas:</span>
-          <!-- 1 coluna no mobile, 2 a partir de md -->
-          <div class="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-x-2 md:gap-y-5 xl:gap-y-8">
-            <div v-for="question in exampleQuestions" :key="question">
-              <span
-                class="inline-block text-sm text-gray-600/80 p-3 bg-white rounded-full
-                       md:text-base"
-              >
-                {{ question }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Cards: 1 coluna (mobile), 2 colunas (md), 4 colunas (xl) -->
-    <div
-      class="w-full grid grid-cols-1 gap-4
-             md:grid-cols-2
-             xl:grid-cols-4 xl:absolute xl:bottom-0 xl:left-0 xl:p-4"
-    >
+    <!-- Cards de métricas: 1 coluna (mobile), 2 (md), 4 (xl) -->
+    <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
       <DashboardCard
         :icon="{ iconFile: FileIcon, color: 'text-white', bgColor: 'bg-blue-600' }"
         title="Documentos"
@@ -87,6 +92,36 @@ const exampleQuestions = [
         sub-title="teste2"
         :total="25"
       />
-    </div>
+    </section>
+
+    <!-- Área inferior: ocupa todo o espaço que sobrar.
+         1 coluna (mobile/md), 2 colunas (xl), com o card principal mais largo. -->
+    <section class="grid flex-1 grid-cols-1 gap-4 xl:grid-cols-3 xl:min-h-0">
+      <!-- Card principal: 2/3 da largura no desktop -->
+      <Card class="flex min-h-64 flex-col xl:col-span-2 xl:min-h-0">
+        <CardHeader class="flex flex-row items-center justify-between">
+          <span class="font-semibold">Documentos recentes</span>
+          <a href="/documentos" class="text-sm text-blue-500 hover:underline">
+            Ver todos
+          </a>
+        </CardHeader>
+        <!-- min-h-0 + overflow permitem rolar a lista sem estourar o card -->
+        <CardContent class="min-h-0 flex-1 overflow-y-auto">
+          <DocumentList 
+            :documents="documents"
+          />
+        </CardContent>
+      </Card>
+
+      <!-- Segundo card: 1/3 da largura no desktop -->
+      <Card class="flex min-h-64 flex-col xl:min-h-0">
+        <CardHeader>
+          <span class="font-semibold">Novo card</span>
+        </CardHeader>
+        <CardContent class="min-h-0 flex-1 overflow-y-auto">
+          <!-- Conteúdo aqui -->
+        </CardContent>
+      </Card>
+    </section>
   </div>
 </template>

@@ -15,8 +15,9 @@
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {
-    "@lucide/vue": "^1.58.0",
+    "@lucide/vue": "^1.59.0",
     "@tailwindcss/vite": "^4.3.3",
+    "@tanstack/vue-query": "^5.104.3",
     "@vueuse/core": "^15.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { ref, useTemplateRef } from 'vue'
 import { useDropZone } from '@vueuse/core'
-import { CloudUploadIcon } from 'lucide-vue-next'
+import { ChevronLeftIcon, CloudUploadIcon, FileTextIcon } from 'lucide-vue-next'
+import Button from '@/components/ui/button/Button.vue'
 const dropZoneRef = useTemplateRef<HTMLDivElement>('dropZoneRef')
 const fileInputRef = useTemplateRef<HTMLInputElement>('fileInputRef')
+
+const emit = defineEmits<{
+  cancel: []
+}>()
 
 const files = ref<File[]>([])
 
@@ -45,14 +50,20 @@ const { isOverDropZone } = useDropZone(dropZoneRef, {
 
 <template>
   <div>
-    <div class="flex flex-col pt-7 pl-7">
-      <span class="text-3xl font-bold text-background">
-        Adicionar Documentos
-      </span>
+    <div class="flex flex-col gap-3 md:flex-row justify-between pt-7 pl-7 pr-7">
+      <div class="flex flex-col">
+        <span class="text-3xl font-bold text-background">
+          Adicionar Documentos
+        </span>
 
-      <span class="text-lg font-medium text-gray-500">
-        Faça o upload dos seus arquivos para que sejam processados e indexados.
-      </span>
+        <span class="text-lg font-medium text-gray-500">
+          Faça o upload dos seus arquivos para que sejam processados e indexados.
+        </span>
+      </div>
+      <Button class="h-10 shrink-0 gap-2 bg-blue-500 hover:bg-blue-600" @click="emit('cancel')">
+        <ChevronLeftIcon />
+        <span>Voltar para documentos</span>
+      </Button>
     </div>
 
     <!-- Área de arrastar e clicar -->
@@ -60,7 +71,7 @@ const { isOverDropZone } = useDropZone(dropZoneRef, {
       ref="dropZoneRef"
       role="button"
       tabindex="0"
-      class="m-7 cursor-pointer rounded-xl border-2 border-dashed p-10 text-center transition-colors bg-white"
+      class="m-7 cursor-pointer rounded-xl border-2 border-dashed p-10 text-center transition-colors bg-gray-200"
       :class="isOverDropZone
         ? 'border-blue-500 bg-blue-50'
         : 'border-gray-300 hover:border-blue-400'"
@@ -106,7 +117,12 @@ const { isOverDropZone } = useDropZone(dropZoneRef, {
         class="flex items-center justify-between rounded-lg border p-3 bg-white"
       >
         <div class="min-w-0">
-          <p class="truncate font-medium">{{ file.name }}</p>
+          <div class="flex justify-center items-center gap-2">
+            <div class="shrink-0 rounded-lg bg-orange-100 p-2 text-orange-600">
+              <FileTextIcon class="h-4 w-4" />
+            </div>
+            <p class="truncate font-medium">{{ file.name }}</p>
+          </div>
           <p class="text-sm text-gray-500">
             {{ (file.size / 1024).toFixed(1) }} KB
           </p>

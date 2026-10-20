@@ -17,7 +17,7 @@ import AvatarImage from '@/components/ui/avatar/AvatarImage.vue'
 const navItems = [
   { to: '/', label: 'Início', icon: HouseIcon },
   { to: '/documents', label: 'Documentos', icon: FileTextIcon },
-  { to: '/buscar', label: 'Buscar', icon: SearchIcon },
+  { to: '/search', label: 'Buscar', icon: SearchIcon },
   { to: '/configuracoes', label: 'Configurações', icon: SettingsIcon },
 ]
 
@@ -124,8 +124,20 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       </header>
 
       <!-- O scroll acontece aqui, não na página inteira -->
-      <main class="min-h-0 flex-1 overflow-y-auto bg-gray-200">
-        <RouterView />
+      <main class="min-h-0 flex-1 overflow-y-auto bg-white">
+        <RouterView v-slot="{ Component }">
+          <Transition
+            enter-active-class="transition-all duration-300 ease-out"
+            enter-from-class="opacity-0 translate-y-3"
+            enter-to-class="opacity-100 translate-y-0"
+            leave-active-class="transition-all duration-200 ease-in"
+            leave-from-class="opacity-100 translate-y-0"
+            leave-to-class="opacity-0 -translate-y-2"
+            mode="out-in"
+          >
+            <component :is="Component" />
+          </Transition>
+        </RouterView>
       </main>
     </div>
   </div>
