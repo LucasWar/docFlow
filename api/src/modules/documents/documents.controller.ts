@@ -12,6 +12,7 @@ import { DocumentsService } from './documents.service';
 import { AuthenticateGuard } from 'src/shared/guards/auth.guard';
 import { CurrentUser } from 'src/shared/decorators/current-user.decorator';
 import { CreateDocumentDto } from './dto/create-document.dto';
+import { DocumentFilter } from './type/filter-document.type';
 
 @Controller('documents')
 export class DocumentsController {
@@ -28,8 +29,17 @@ export class DocumentsController {
 
   @Get()
   @UseGuards(AuthenticateGuard)
-  listDocuments(@CurrentUser() userId: string, @Query() filters: any) {
-    return this.documentsService.listDocuments(userId);
+  listDocuments(
+    @CurrentUser() userId: string,
+    @Query() filters: DocumentFilter,
+  ) {
+    return this.documentsService.listDocuments(filters, userId);
+  }
+
+  @Get('resume')
+  @UseGuards(AuthenticateGuard)
+  resume(@CurrentUser() userId: string) {
+    return this.documentsService.resume(userId);
   }
 
   @Get(':id')

@@ -27,14 +27,12 @@ export class AuthRepository {
   }
 
   async updateRevokedAtSession(
-    userId: string,
     refreshTokenJti: string,
     revokedReason: RevokedReason,
   ) {
     try {
       return await this.prismaService.session.update({
         where: {
-          userId,
           refreshTokenJti,
         },
         data: {

@@ -3,6 +3,8 @@ import { StatusDocument } from './status-documents.enum';
 export type CreateDocumentType = {
   fileName: string;
 
+  fileKey: string;
+
   storageKey: string;
 
   size: number;

@@ -8,6 +8,7 @@ import { DocumentsRepository } from './document.repository';
 import { StatusDocument } from './type/status-documents.enum';
 import { EmbeddingsService } from '../embeddings/embeddings.service';
 import { S3ClientService } from '../s3-client/s3-client.service';
+import { DocumentFilter } from './type/filter-document.type';
 
 @Injectable()
 export class DocumentsService {
@@ -18,14 +19,15 @@ export class DocumentsService {
   ) {}
 
   async upload(createDocumentDto: CreateDocumentDto, userId: string) {
-    const { fileName, size, storageKey } = createDocumentDto;
+    const { fileName, size } = createDocumentDto;
     const fileId = crypto.randomUUID();
     const keyFile = `uploads/${fileId}-${fileName}`;
     const document = await this.documentRepository.createDocument(
       {
-        fileName: keyFile,
+        fileName,
+        fileKey: keyFile,
         size,
-        storageKey,
+        storageKey: 'uploads',
         userId,
         status: StatusDocument.QUEUED,
       },
@@ -41,8 +43,38 @@ export class DocumentsService {
     return { url };
   }
 
-  async listDocuments(userId: string) {
-    return await this.documentRepository.findMany(userId);
+  async resume(userId: string) {
+    const numDocuments = await this.documentRepository.count(userId);
+
+    const numChuncks = await this.documentRepository.countChuncks(userId);
+
+    const numPages = await this.documentRepository.countPages(userId);
+
+    return {
+      numDocuments,
+      numChuncks,
+      numPages,
+    };
+  }
+
+  async listDocuments(filter: DocumentFilter, userId: string) {
+    const documents = await this.documentRepository.findMany(filter, userId);
+
+    const totalDocuments = await this.documentRepository.count(userId, filter);
+
+    const totalPages = Math.ceil(totalDocuments / filter.limit);
+
+    return {
+      documents,
+      pagination: {
+        totalPages,
+        total: totalDocuments,
+        perPage: filter.limit,
+        page: filter.page,
+        hasNext: filter.page < totalPages,
+        hasPrev: filter.page > 1,
+      },
+    };
   }
 
   async findDocument(userId: string, documentId: string) {
@@ -82,6 +114,11 @@ export class DocumentsService {
       throw new NotFoundException('Document not found');
     }
 
-    return await this.s3ClientService.dowloadObjectS3(document.fileName);
+    const url = await this.s3ClientService.dowloadObjectS3(
+      document.fileKey,
+      document.fileName,
+    );
+
+    return { url };
   }
 }

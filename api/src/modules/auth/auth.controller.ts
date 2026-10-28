@@ -3,15 +3,13 @@ import {
   Post,
   Body,
   Res,
-  UseGuards,
   UseInterceptors,
+  HttpCode,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import type { Response } from 'express';
-import { AuthenticateGuard } from 'src/shared/guards/auth.guard';
-import { CurrentUser } from 'src/shared/decorators/current-user.decorator';
 import { CurrentRefreshToken } from 'src/shared/decorators/current-refresk-token.decorator';
 import { IdempotencyInteceptor } from 'src/shared/interceptors/idempontecy-key.interceptor';
 
@@ -47,13 +45,12 @@ export class AuthController {
   }
 
   @Post('logout')
-  @UseGuards(AuthenticateGuard)
+  @HttpCode(200)
   async logout(
-    @CurrentUser() userId: string,
     @CurrentRefreshToken() refreshTokenReq: string,
-    @Res() response: Response,
+    @Res({ passthrough: true }) response: Response,
   ) {
-    await this.authService.closeSession(userId, refreshTokenReq);
+    await this.authService.closeSession(refreshTokenReq);
     response.clearCookie('refresh_token', {
       httpOnly: true,
     });

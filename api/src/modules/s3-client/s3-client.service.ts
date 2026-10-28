@@ -38,11 +38,11 @@ export class S3ClientService {
     );
   }
 
-  async dowloadObjectS3(keyFile: string) {
+  async dowloadObjectS3(keyFile: string, fileName: string) {
     const command = new GetObjectCommand({
       Bucket: this.bucket,
       Key: keyFile,
-      ResponseContentDisposition: `attachment; filename="${encodeURIComponent(keyFile)}"`,
+      ResponseContentDisposition: `attachment; filename="${encodeURIComponent(fileName)}"`,
     });
 
     return await getSignedUrl(this.s3Client, command, { expiresIn: 300 });

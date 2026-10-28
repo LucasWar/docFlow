@@ -2,6 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../database/prisma-service.service';
 import { CreateDocumentType } from './type/create-document.type';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/wasm-compiler-edge';
+import { BuilderFilterDocuments } from './build-filter';
+import { DocumentFilter } from './type/filter-document.type';
+import { DocumentWhereInput } from 'src/generated/prisma/models';
 
 @Injectable()
 export class DocumentsRepository {
@@ -110,11 +113,64 @@ export class DocumentsRepository {
     }
   }
 
-  async findMany(userId: string) {
+  async findMany(filter: DocumentFilter, userId: string) {
+    const query = new BuilderFilterDocuments(filter, userId).build();
+
     try {
-      return await this.prismaService.document.findMany({
+      return await this.prismaService.document.findMany(query);
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        console.error('Erro do Prisma:', error.code);
+      }
+
+      throw error;
+    }
+  }
+
+  async count(userId: string, filter?: DocumentFilter) {
+    let query: DocumentWhereInput | undefined = {};
+    if (filter) {
+      query = new BuilderFilterDocuments(filter, userId).build().where;
+    }
+
+    try {
+      return await this.prismaService.document.count({
+        where: query,
+      });
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        console.error('Erro do Prisma:', error.code);
+      }
+
+      throw error;
+    }
+  }
+
+  async countChuncks(userId: string) {
+    try {
+      return await this.prismaService.documentChunk.count({
         where: {
-          userId,
+          document: {
+            userId,
+          },
+        },
+      });
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        console.error('Erro do Prisma:', error.code);
+      }
+
+      throw error;
+    }
+  }
+
+  async countPages(userId: string) {
+    try {
+      return await this.prismaService.documentPage.count({
+        where: {
+          document: {
+            userId,
+          },
         },
       });
     } catch (error) {

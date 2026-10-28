@@ -9,6 +9,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UsersRepository } from './users.repository';
 import { CredentialsUserType } from './types/validate-credentials.type';
 import { CurrentUserType } from '../auth/types/current-user.type';
+import { AppException } from 'src/shared/exception/app.exception';
+import { ErrorCode } from 'src/shared/enum/ErroCode.enum';
 
 @Injectable()
 export class UsersService {
@@ -26,8 +28,8 @@ export class UsersService {
     return await this.userRepository.findMany();
   }
 
-  async me(user: CurrentUserType) {
-    return await this.userRepository.findUserById(user.userId);
+  async me(userId: string) {
+    return await this.userRepository.findUserById(userId);
   }
 
   async findOneUserById(id: string) {
@@ -46,7 +48,11 @@ export class UsersService {
     const user = await this.userRepository.findEmail(email);
 
     if (!user) {
-      throw new NotFoundException('Email não cadastrado');
+      throw new AppException(
+        'Email não cadastrado',
+        ErrorCode.EMAIL_NOT_REGISTRED,
+        404,
+      );
     }
 
     const validatePassworld = await bcrypt.compare(
@@ -55,7 +61,11 @@ export class UsersService {
     );
 
     if (!validatePassworld) {
-      throw new BadRequestException('Dados incorretos');
+      throw new AppException(
+        'Credenciais invalidas',
+        ErrorCode.INVALID_CREDENTIALS,
+        401,
+      );
     }
 
     return user;

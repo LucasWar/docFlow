@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import bcrypt from 'bcrypt';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -118,12 +122,16 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async closeSession(userId: string, refreshTokenReq: string) {
+  async closeSession(refreshTokenReq: string | undefined) {
+    if (!refreshTokenReq) return;
     const payload =
       this.jwtService.decode<RefreshTokenPayloadType>(refreshTokenReq);
 
+    const session = await this.authRepository.findOneByJti(payload.jti);
+
+    if (!session) return;
+
     await this.authRepository.updateRevokedAtSession(
-      userId,
       payload.jti,
       RevokedReason.LOGOUT,
     );
@@ -138,13 +146,9 @@ export class AuthService {
         },
       );
 
-    console.log(payloadRefreshToken);
-
     if (!payloadRefreshToken) {
       throw new UnauthorizedException('Token inválido ou expirado');
     }
-
-    console.log(payloadRefreshToken);
 
     const recordRefreshToken = await this.authRepository.findOneByJti(
       payloadRefreshToken.jti,
