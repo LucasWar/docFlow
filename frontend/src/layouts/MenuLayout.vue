@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import logo from '@/assets/logo.png'
 import {
   HouseIcon,
@@ -9,10 +9,27 @@ import {
   SearchIcon,
   MenuIcon,
   XIcon,
+  LogOutIcon
 } from '@lucide/vue'
 import Avatar from '@/components/ui/avatar/Avatar.vue'
 import AvatarFallback from '@/components/ui/avatar/AvatarFallback.vue'
 import AvatarImage from '@/components/ui/avatar/AvatarImage.vue'
+import Button from '@/components/ui/button/Button.vue'
+import { useAuthStore } from '@/stores/auth'
+import { useMutation } from '@tanstack/vue-query'
+import { authService } from '@/services/auth'
+
+const auth = useAuthStore()
+const route = useRoute()
+const router = useRouter()
+
+const { mutate: logoutMutate, isPending } = useMutation({
+  mutationFn: () => authService.logout(),
+  onSettled: () => {
+    auth.logout()
+    router.push('/login')
+  },
+})
 
 const navItems = [
   { to: '/', label: 'Início', icon: HouseIcon },
@@ -23,7 +40,6 @@ const navItems = [
 
 // Controla o drawer no mobile (no desktop a sidebar é sempre visível)
 const isMenuOpen = ref(false)
-const route = useRoute()
 
 // Fecha o menu ao navegar para outra página
 watch(() => route.fullPath, () => {
@@ -36,11 +52,11 @@ const onKeydown = (e: KeyboardEvent) => {
 }
 onMounted(() => window.addEventListener('keydown', onKeydown))
 onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+
 </script>
 
 <template>
   <div class="flex h-dvh w-full overflow-hidden bg-gray-200">
-    <!-- Overlay escuro atrás do drawer (só mobile) -->
     <Transition
       enter-active-class="transition-opacity duration-300"
       leave-active-class="transition-opacity duration-300"
@@ -54,7 +70,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       />
     </Transition>
 
-    <!-- Sidebar: drawer no mobile, fixa a partir de lg -->
     <aside
       id="sidebar"
       class="fixed inset-y-0 left-0 z-40 flex w-72 max-w-[85vw] flex-col justify-between
@@ -97,12 +112,24 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         </nav>
       </div>
 
-      <footer class="flex items-center gap-3 p-4">
-        <Avatar class="h-11 w-11">
-          <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-          <AvatarFallback>CN</AvatarFallback>
-        </Avatar>
-        <span class="truncate font-medium text-white">Lucas Warley</span>
+      <footer class="flex items-center justify-between">
+        <div class="flex items-center gap-3 p-4 w-5/6 truncante">
+          <Avatar class="h-11 w-11">
+            <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+            <AvatarFallback>CN</AvatarFallback>
+          </Avatar>
+          <span class="truncate font-medium text-white">{{ auth.user?.name }}</span>
+        </div>
+         <Button
+            variant="ghost"
+            size="icon"
+            class="text-white"
+            aria-label="Sair"
+            :disabled="isPending"
+            @click="logoutMutate()"
+          >
+            <LogOutIcon class="h-6 w-6" />
+          </Button>
       </footer>
     </aside>
 

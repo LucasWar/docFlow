@@ -1,0 +1,7 @@
+export enum StatusDocument {
+  UPLOADED = 'UPLOADED',
+  QUEUED = 'QUEUED',
+  PROCESSING = 'PROCESSING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+}

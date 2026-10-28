@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
 import Button from '@/components/ui/button/Button.vue'
 import Input from '@/components/ui/input/Input.vue'
 import Table from '@/components/ui/table/Table.vue'
@@ -23,7 +22,17 @@ import { cn } from 'cn'
 import { documentStatusMapper } from '../mappers/document-status.mapper'
 import { DocumentStatus } from '../enums/document-status'
 import AppPagination from '@/components/AppPagination.vue'
-import { usePagination } from '@/composables/usePagination'
+import { useDocumentController } from '@/composables/useDocument'
+import Spinner from '@/components/ui/spinner/Spinner.vue'
+import { formatarData } from '@/lib/fomat-data'
+import DropdownMenu from '@/components/ui/dropdown-menu/DropdownMenu.vue'
+import DropdownMenuTrigger from '@/components/ui/dropdown-menu/DropdownMenuTrigger.vue'
+import DropdownMenuContent from '@/components/ui/dropdown-menu/DropdownMenuContent.vue'
+import DropdownMenuItem from '@/components/ui/dropdown-menu/DropdownMenuItem.vue'
+
+import { DownloadIcon, EyeIcon, TrashIcon } from 'lucide-vue-next'
+
+const { documents, pagination, isLoading, currentPage, search, selectedStatus, pageSize, hanldedownloadDocument } = useDocumentController()
 
 const statuses = Object.values(DocumentStatus)
 
@@ -31,39 +40,6 @@ const emit = defineEmits<{
   upload: []
 }>()
 
-// Dados de exemplo (substitua pela sua fonte real)
-const documentsList = Array.from({ length: 12 }, (_, i) => ({
-  id: i + 1,
-  name: `Contrato de prestação de serviços ${i + 1}.pdf`,
-  size: 40,
-  numPages: 20,
-  status: DocumentStatus.COMPLETED,
-  dateUpload: new Date(),
-}))
-
-// Filtros
-const search = ref('')
-const selectedStatus = ref<string>('all')
-
-const filteredDocuments = computed(() =>
-  documentsList.filter((doc) => {
-    const matchesName = doc.name.toLowerCase().includes(search.value.toLowerCase())
-    const matchesStatus =
-      selectedStatus.value === 'all' || doc.status === selectedStatus.value
-    return matchesName && matchesStatus
-  }),
-)
-
-//Isso aqui vai ser substituido pela chamada da API
-const { page, pageSize, total, totalPages, paginatedItems, from, to } =
-  usePagination(filteredDocuments, 8)
-
-const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(date)
 </script>
 
 <template>
@@ -113,7 +89,14 @@ const formatDate = (date: Date) =>
     </header>
 
     <div
-      v-if="filteredDocuments.length === 0"
+      v-if="isLoading"
+      class="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-dashed bg-white py-16 text-center"
+    >
+      <Spinner />
+    </div>
+
+    <div
+      v-if="!isLoading && documents.length === 0"
       class="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-dashed bg-white py-16 text-center"
     >
       <FileTextIcon class="h-10 w-10 text-gray-300" />
@@ -125,7 +108,7 @@ const formatDate = (date: Date) =>
 
       <ul class="flex flex-col gap-3 md:hidden">
         <li
-          v-for="doc in filteredDocuments"
+          v-for="doc in documents"
           :key="doc.id"
           class="flex flex-col gap-3 rounded-xl border bg-white p-4 shadow-sm"
         >
@@ -134,7 +117,7 @@ const formatDate = (date: Date) =>
               <div class="rounded-lg bg-blue-50 p-2 text-blue-600">
                 <FileTextIcon class="h-5 w-5" />
               </div>
-              <span class="truncate font-medium text-gray-800">{{ doc.name }}</span>
+              <span class="truncate font-medium text-gray-800">{{ doc.fileName }}</span>
             </div>
             <button
               type="button"
@@ -155,107 +138,131 @@ const formatDate = (date: Date) =>
               <component :is="documentStatusMapper[doc.status].icon" class="h-3.5 w-3.5" />
               {{ documentStatusMapper[doc.status].label }}
             </span>
-            <span>{{ doc.size }} MB · {{ doc.numPages }} págs.</span>
-            <span>{{ formatDate(doc.dateUpload) }}</span>
+            <span>{{ doc.size.toFixed(2) }} MB · {{ doc.pageCount }} págs.</span>
+            <span>{{ formatarData(doc.createdAt) }}</span>
           </div>
         </li>
       </ul>
 
+      <div class="flex flex-col gap-2" v-if="!isLoading && documents?.length">
+        <div class="hidden overflow-hidden rounded-xl border bg-white shadow-sm md:block">
+          <Table>
+            <TableHeader class="bg-gray-50">
+              <TableRow class="hover:bg-gray-50">
+                <TableHead class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Nome
+                </TableHead>
+          
+                <TableHead class="hidden px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 lg:table-cell">
+                  Tamanho
+                </TableHead>
+                <TableHead class="hidden px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 lg:table-cell">
+                  Páginas
+                </TableHead>
+                <TableHead class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Status
+                </TableHead>
+                <TableHead class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Dowload
+                </TableHead>
+                <TableHead class="hidden px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 xl:table-cell">
+                  Data de upload
+                </TableHead>
+                <TableHead class="w-12 px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <span class="sr-only">Ações</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
 
-      <div class="hidden overflow-hidden rounded-xl border bg-white shadow-sm md:block">
-        <Table>
-          <TableHeader class="bg-gray-50">
-            <TableRow class="hover:bg-gray-50">
-              <TableHead class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                Nome
-              </TableHead>
-        
-              <TableHead class="hidden px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 lg:table-cell">
-                Tamanho
-              </TableHead>
-              <TableHead class="hidden px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 lg:table-cell">
-                Páginas
-              </TableHead>
-              <TableHead class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                Status
-              </TableHead>
-              <TableHead class="hidden px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 xl:table-cell">
-                Data de upload
-              </TableHead>
-              <TableHead class="w-12 px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
-                <span class="sr-only">Ações</span>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            <TableRow
-              v-for="doc in filteredDocuments"
-              :key="doc.id"
-              class="transition-colors hover:bg-blue-50/40"
-            >
-              <TableCell class="px-4 py-3">
-                <div class="flex items-center gap-3">
-                  <div class="shrink-0 rounded-lg bg-orange-50 p-2 text-orange-600">
-                    <FileTextIcon class="h-4 w-4" />
+            <TableBody>
+              <TableRow
+                v-for="doc in documents"
+                :key="doc.id"
+                class="transition-colors hover:bg-blue-50/40"
+              >
+                <TableCell class="px-4 py-3">
+                  <div class="flex items-center gap-3">
+                    <div class="shrink-0 rounded-lg bg-orange-50 p-2 text-orange-600">
+                      <FileTextIcon class="h-4 w-4" />
+                    </div>
+                    <div class="flex min-w-0 flex-col">
+                      <span class="max-w-48 truncate font-medium text-gray-800 lg:max-w-72 xl:max-w-96">
+                        {{ doc.fileName }}
+                      </span>
+                
+                      <span class="text-xs text-gray-400 lg:hidden">
+                        {{ doc.size }} MB · {{ doc.pageCount }} págs.
+                      </span>
+                    </div>
                   </div>
-                  <div class="flex min-w-0 flex-col">
-                    <span class="max-w-48 truncate font-medium text-gray-800 lg:max-w-72 xl:max-w-96">
-                      {{ doc.name }}
-                    </span>
-              
-                    <span class="text-xs text-gray-400 lg:hidden">
-                      {{ doc.size }} MB · {{ doc.numPages }} págs.
-                    </span>
-                  </div>
-                </div>
-              </TableCell>
+                </TableCell>
 
-              <TableCell class="hidden px-4 py-3 text-gray-600 lg:table-cell">
-                {{ doc.size }} MB
-              </TableCell>
+                <TableCell class="hidden px-4 py-3 text-gray-600 lg:table-cell">
+                  {{ doc.size.toFixed(2) }} MB
+                </TableCell>
 
-              <TableCell class="hidden px-4 py-3 text-gray-600 lg:table-cell">
-                {{ doc.numPages }}
-              </TableCell>
+                <TableCell class="hidden px-4 py-3 text-gray-600 lg:table-cell">
+                  {{ doc.pageCount }}
+                </TableCell>
 
-              <TableCell class="px-4 py-3">
-                <span
-                  :class="cn(
-                    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium',
-                    documentStatusMapper[doc.status].class,
-                  )"
-                >
-                  <component :is="documentStatusMapper[doc.status].icon" class="h-3.5 w-3.5" />
-                  {{ documentStatusMapper[doc.status].label }}
-                </span>
-              </TableCell>
+                <TableCell class="px-4 py-3">
+                  <span
+                    :class="cn(
+                      'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium',
+                      documentStatusMapper[doc.status].class,
+                    )"
+                  >
+                    <component :is="documentStatusMapper[doc.status].icon" class="h-3.5 w-3.5" />
+                    {{ documentStatusMapper[doc.status].label }}
+                  </span>
+                </TableCell>
 
-              <TableCell class="hidden px-4 py-3 text-gray-600 xl:table-cell">
-                {{ formatDate(doc.dateUpload) }}
-              </TableCell>
+                <TableCell class="px-4 py-3">
+                  <Button @click="hanldedownloadDocument(doc.id)"><DownloadIcon /></Button>
+                </TableCell>
 
-              <TableCell class="px-4 py-3 text-right">
-                <button
-                  type="button"
-                  class="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100"
-                  aria-label="Ações do documento"
-                >
-                  <EllipsisVerticalIcon class="h-4 w-4" />
-                </button>
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+                <TableCell class="hidden px-4 py-3 text-gray-600 xl:table-cell">
+                  {{ formatarData(doc.createdAt) }}
+                </TableCell>
+
+                <TableCell class="px-4 py-3 text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger>
+                      <button
+                        type="button"
+                        class="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100"
+                        aria-label="Ações do documento"
+                      >
+                        <EllipsisVerticalIcon class="h-4 w-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" class="font-medium">
+                      <DropdownMenuItem>
+                        <EyeIcon />
+                        Vizualizar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem class="hover:bg-red-400">
+                        <TrashIcon />
+                        Apagar
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+
+        <AppPagination
+          v-if="pagination"
+          v-model:page="currentPage"
+          v-model:page-size="pageSize"
+          :total="pagination.total"
+          :total-pages="pagination.totalPage"
+          :page-size-options="[5, 8, 12, 10]"
+          
+        />
       </div>
-      <AppPagination
-        v-model:page="page"
-        v-model:page-size="pageSize"
-        :total="total"
-        :total-pages="totalPages"
-        :from="from"
-        :to="to"
-      />
     </template>
   </div>
 </template>

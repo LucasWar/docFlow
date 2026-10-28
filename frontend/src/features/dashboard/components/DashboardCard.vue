@@ -2,6 +2,7 @@
 import Card from '@/components/ui/card/Card.vue'
 import CardContent from '@/components/ui/card/CardContent.vue';
 import CardHeader from '@/components/ui/card/CardHeader.vue'
+import Spinner from '@/components/ui/spinner/Spinner.vue';
 import { cn } from '@/lib/utils';
 import type { Component } from 'vue'
 
@@ -11,6 +12,7 @@ defineProps<{
     bgColor?: string
     iconFile: Component
   }
+  loading: boolean
   title: string
   subTitle: string
   total: number
@@ -27,7 +29,10 @@ defineProps<{
             <span class="truncate text-xl">{{ title }}</span>
         </CardHeader>
         <CardContent class="flex flex-col gap-3">
-          <div class="text-4xl">
+          <div v-if="loading" class="text-4xl">
+            <Spinner />
+          </div>
+          <div v-else class="text-4xl">
             {{ total }}
           </div>
           <div class="text-lg">

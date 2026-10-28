@@ -4,6 +4,11 @@ import Button from '@/components/ui/button/Button.vue'
 import Checkbox from '@/components/ui/checkbox/Checkbox.vue'
 import Input from '@/components/ui/input/Input.vue'
 import { UserIcon, LockIcon } from '@lucide/vue'
+import { userLoginController } from '@/composables/useLogin'
+import { Form, Field } from 'vee-validate'
+
+const {onSubmit, schema} = userLoginController();
+
 </script>
 
 <template>
@@ -53,24 +58,36 @@ import { UserIcon, LockIcon } from '@lucide/vue'
             </span>
           </div>
 
-          <form class="flex flex-col gap-5">
-            <div class="relative flex items-center">
-              <UserIcon class="absolute w-6 h-6 left-3" />
-              <Input
-                class="w-full h-11 pl-11"
-                placeholder="E-mail do usuário"
-              />
-            </div>
-
-            <div class="relative flex items-center">
-              <LockIcon class="absolute w-6 h-6 left-3" />
-              <Input
-                class="w-full h-11 pl-11"
-                type="password"
-                placeholder="Senha"
-              />
-            </div>
-
+          <Form :validation-schema="schema" class="flex flex-col gap-5" @submit="onSubmit">
+            <Field name="email" v-slot="{ field, errorMessage }">
+              <div>
+                <div class="relative flex items-center">
+                  <UserIcon class="absolute w-6 h-6 left-3" />
+                  <Input
+                    v-bind="field"
+                    name="email"
+                    class="w-full h-11 pl-11"
+                    placeholder="E-mail do usuário"
+                  />
+                </div>
+                <span v-if="errorMessage" class="text-sm text-red-500">{{ errorMessage }}</span>
+              </div>
+            </Field>
+            <Field name="passworld" v-slot="{ field, errorMessage }">
+              <div>
+                <div class="relative flex items-center">
+                  <LockIcon class="absolute w-6 h-6 left-3" />
+                  <Input
+                    v-bind="field"
+                    name="passworld"
+                    class="w-full h-11 pl-11"
+                    type="password"
+                    placeholder="Senha"
+                  />
+                </div>
+                <span v-if="errorMessage" class="text-sm text-red-500">{{ errorMessage }}</span>
+              </div>
+            </Field>
             <div
               class="w-full flex flex-col gap-3 pt-1 pb-4 text-sm
                      sm:flex-row sm:justify-between sm:items-center sm:text-base
@@ -88,7 +105,7 @@ import { UserIcon, LockIcon } from '@lucide/vue'
             <Button class="w-full h-11">
               Entrar
             </Button>
-          </form>
+          </Form>
         </div>
       </div>
     </section>

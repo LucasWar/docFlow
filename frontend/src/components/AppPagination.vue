@@ -17,8 +17,8 @@ import SelectValue from '@/components/ui/select/SelectValue.vue'
 withDefaults(
   defineProps<{
     total: number
-    from: number
-    to: number
+    from?: number
+    to?: number
     pageSizeOptions?: number[]
   }>(),
   { pageSizeOptions: () => [5, 8, 10, 20] },
@@ -33,9 +33,9 @@ const pageSize = defineModel<number>('pageSize', { required: true })
     <!-- Resumo + itens por página -->
     <div class="flex flex-col gap-2 text-sm text-gray-500 sm:flex-row sm:items-center sm:gap-4">
       <p>
-        Mostrando
-        <span class="font-medium text-gray-700">{{ from }}–{{ to }}</span>
-        de
+        <!-- Mostrando
+        <span class="font-medium text-gray-700">{{ from }}–{{ to }}</span> -->
+        Total
         <span class="font-medium text-gray-700">{{ total }}</span>
       </p>
 
