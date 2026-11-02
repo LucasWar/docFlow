@@ -8,33 +8,33 @@ Não há na API uma rota de pergunta e resposta com LLM: a funcionalidade de bus
 
 ## Stack
 
-| Tecnologia | Uso observado |
-|---|---|
-| NestJS 11 e TypeScript | Módulos HTTP, controllers, serviços e injeção de dependências |
-| PostgreSQL 16 (`pgvector/pgvector`) | Usuários, sessões, documentos, páginas, trechos e vetores |
-| Prisma 7 com adapter `@prisma/adapter-pg` | Acesso relacional, migrations e client gerado |
-| Redis 8 e `ioredis` | Cache de respostas idempotentes do cadastro, com TTL |
-| JWT, Passport e `bcrypt` | Autenticação por access token e refresh token, armazenamento de hash de senha |
-| AWS SDK v3 para S3 | URLs pré-assinadas, leitura e exclusão de objetos |
-| `class-validator` e `class-transformer` | Validação e transformação dos DTOs |
-| Docker Compose | Execução local do PostgreSQL/pgvector e Redis |
+| Tecnologia                                | Uso observado                                                                 |
+| ----------------------------------------- | ----------------------------------------------------------------------------- |
+| NestJS 11 e TypeScript                    | Módulos HTTP, controllers, serviços e injeção de dependências                 |
+| PostgreSQL 16 (`pgvector/pgvector`)       | Usuários, sessões, documentos, páginas, trechos e vetores                     |
+| Prisma 7 com adapter `@prisma/adapter-pg` | Acesso relacional, migrations e client gerado                                 |
+| Redis 8 e `ioredis`                       | Cache de respostas idempotentes do cadastro, com TTL                          |
+| JWT, Passport e `bcrypt`                  | Autenticação por access token e refresh token, armazenamento de hash de senha |
+| AWS SDK v3 para S3                        | URLs pré-assinadas, leitura e exclusão de objetos                             |
+| `class-validator` e `class-transformer`   | Validação e transformação dos DTOs                                            |
+| Docker Compose                            | Execução local do PostgreSQL/pgvector e Redis                                 |
 
 ## Arquitetura e responsabilidades
 
 O ponto de composição é `src/app.module.ts`. Cada módulo Nest declara os controllers, providers e dependências da sua funcionalidade:
 
-| Pasta/módulo | Responsabilidade |
-|---|---|
-| `src/modules/auth/` | Rotas de cadastro, login, logout e renovação de sessão; `AuthService` aplica as regras de autenticação e `AuthRepository` persiste sessões |
-| `src/modules/users/` | Cadastro, consulta do usuário autenticado e validação de credenciais; `UsersRepository` encapsula as operações Prisma |
-| `src/modules/documents/` | Rotas de upload, listagem, resumo, busca, download e exclusão; serviço coordena repositório, S3 e embeddings |
-| `src/modules/database/` | `PrismaService` instancia o client com `PrismaPg` e conecta/desconecta no ciclo de vida do Nest |
-| `src/modules/redis/` | Provider, repositório e serviço Redis; o interceptor de idempotência usa essa camada |
-| `src/modules/s3-client/` | Configura o client S3 e concentra operações e URLs pré-assinadas |
-| `src/modules/embeddings/` | Chama o serviço HTTP local para gerar o vetor da consulta de busca |
-| `src/shared/` | Guard JWT, decorators de usuário/token, filtro de exceções, códigos de erro e interceptor de idempotência |
-| `prisma/schema.prisma` e `prisma/migrations/` | Modelos relacionais, enums, extensão vetorial e alterações do banco |
-| `src/generated/prisma/` | Client gerado pelo Prisma; não é a fonte dos modelos. A pasta é ignorada pelo Git e deve ser gerada localmente |
+| Pasta/módulo                                  | Responsabilidade                                                                                                                           |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/modules/auth/`                           | Rotas de cadastro, login, logout e renovação de sessão; `AuthService` aplica as regras de autenticação e `AuthRepository` persiste sessões |
+| `src/modules/users/`                          | Cadastro, consulta do usuário autenticado e validação de credenciais; `UsersRepository` encapsula as operações Prisma                      |
+| `src/modules/documents/`                      | Rotas de upload, listagem, resumo, busca, download e exclusão; serviço coordena repositório, S3 e embeddings                               |
+| `src/modules/database/`                       | `PrismaService` instancia o client com `PrismaPg` e conecta/desconecta no ciclo de vida do Nest                                            |
+| `src/modules/redis/`                          | Provider, repositório e serviço Redis; o interceptor de idempotência usa essa camada                                                       |
+| `src/modules/s3-client/`                      | Configura o client S3 e concentra operações e URLs pré-assinadas                                                                           |
+| `src/modules/embeddings/`                     | Chama o serviço HTTP local para gerar o vetor da consulta de busca                                                                         |
+| `src/shared/`                                 | Guard JWT, decorators de usuário/token, filtro de exceções, códigos de erro e interceptor de idempotência                                  |
+| `prisma/schema.prisma` e `prisma/migrations/` | Modelos relacionais, enums, extensão vetorial e alterações do banco                                                                        |
+| `src/generated/prisma/`                       | Client gerado pelo Prisma; não é a fonte dos modelos. A pasta é ignorada pelo Git e deve ser gerada localmente                             |
 
 O fluxo HTTP fica dividido entre controller (contrato e autenticação da rota), service (coordenação/regras), repository (persistência) e clients/providers (integrações externas). DTOs em `dto/` definem validações de entrada; entidades e tipos representam dados e parâmetros internos.
 
@@ -70,21 +70,21 @@ O bootstrap em `src/main.ts` instala `cookie-parser`, `AppExceptionFilter`, `Val
 
 As rotas não têm prefixo global configurado.
 
-| Método | Rota | Proteção/efeito |
-|---|---|---|
-| `POST` | `/auth/register` | Cadastro; passa pelo interceptor de idempotência e requer `x-idempotency-key` |
-| `POST` | `/auth/login` | Valida credenciais; retorna `accessToken` e define cookie `refresh_token` |
-| `POST` | `/auth/refresh` | Renova access/refresh tokens e atualiza o cookie |
-| `POST` | `/auth/logout` | Revoga a sessão e limpa o cookie |
-| `POST` | `/auth/teste` | Rota de teste que retorna `ola` |
-| `GET` | `/users/me` | Requer bearer token; retorna os dados básicos do usuário |
-| `POST` | `/documents/upload` | Requer autenticação; cria registro e retorna URL pré-assinada de `PUT` |
-| `GET` | `/documents` | Requer autenticação; pagina e filtra por nome/status |
-| `GET` | `/documents/resume` | Requer autenticação; contagem de documentos, trechos e páginas |
-| `GET` | `/documents/:id` | Requer autenticação; consulta documento do usuário |
-| `POST` | `/documents/search` | Requer autenticação; recebe `searchText` e retorna trechos relevantes |
-| `GET` | `/documents/:id/download` | Requer autenticação; retorna URL pré-assinada para download |
-| `DELETE` | `/documents/:id` | Requer autenticação; exclui registro e tenta excluir o objeto |
+| Método   | Rota                      | Proteção/efeito                                                               |
+| -------- | ------------------------- | ----------------------------------------------------------------------------- |
+| `POST`   | `/auth/register`          | Cadastro; passa pelo interceptor de idempotência e requer `x-idempotency-key` |
+| `POST`   | `/auth/login`             | Valida credenciais; retorna `accessToken` e define cookie `refresh_token`     |
+| `POST`   | `/auth/refresh`           | Renova access/refresh tokens e atualiza o cookie                              |
+| `POST`   | `/auth/logout`            | Revoga a sessão e limpa o cookie                                              |
+| `POST`   | `/auth/teste`             | Rota de teste que retorna `ola`                                               |
+| `GET`    | `/users/me`               | Requer bearer token; retorna os dados básicos do usuário                      |
+| `POST`   | `/documents/upload`       | Requer autenticação; cria registro e retorna URL pré-assinada de `PUT`        |
+| `GET`    | `/documents`              | Requer autenticação; pagina e filtra por nome/status                          |
+| `GET`    | `/documents/resume`       | Requer autenticação; contagem de documentos, trechos e páginas                |
+| `GET`    | `/documents/:id`          | Requer autenticação; consulta documento do usuário                            |
+| `POST`   | `/documents/search`       | Requer autenticação; recebe `searchText` e retorna trechos relevantes         |
+| `GET`    | `/documents/:id/download` | Requer autenticação; retorna URL pré-assinada para download                   |
+| `DELETE` | `/documents/:id`          | Requer autenticação; exclui registro e tenta excluir o objeto                 |
 
 Os DTOs do cadastro/login usam o nome de propriedade `passworld` (com essa grafia). Consulte [Pontos de atencao](#pontos-de-atencao-e-melhorias-sugeridas) antes de integrar um novo cliente.
 
@@ -118,22 +118,22 @@ O diagrama e as configurações das filas estão em [`../infra/README.md`](../in
 
 Crie `api/.env` a partir de `api/.env.example`; o `.env` real não deve ser versionado. Nunca coloque valores secretos neste README.
 
-| Variável | Consumidor | Observação |
-|---|---|---|
-| `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | Compose do banco | Credenciais/nome do banco local |
-| `POSTGRES_PORT` | Compose do banco | Porta publicada no host; exemplo no arquivo é `5433`, dentro do container permanece `5432` |
-| `DATABASE_URL` | Prisma e configuração Prisma | URL de conexão usada pela API e migrations |
-| `REDIS_PORT` | Compose do Redis e provider Redis | Host publica a porta configurada; client usa `6379` por padrão |
-| `REDIS_HOST` | Provider Redis | Padrão `localhost`; variável usada pela aplicação, mas não consta no `.env.example` atual |
-| `PORT` | `src/main.ts` | Porta HTTP da API; padrão `3000` |
-| `JWT_ACCESS_TOKEN_SECRET` | Auth/JWT | Segredo do token de acesso |
-| `JWT_REFRESH_TOKEN_SECRET` | Auth/JWT | Segredo do token de renovação |
-| `S3_ACCESS_ID`, `S3_SECRET_ACCESS_KEY` | Provider S3 | Obrigatórios pelo provider; use credenciais apropriadas ao LocalStack em desenvolvimento |
-| `S3_ENDPOINT` | Provider S3 | Padrão `http://localhost:4566` |
-| `S3_REGION` | Provider S3 | Padrão `us-east-1` |
-| `S3_BUCKET` | Serviço S3 | Padrão `documentsflows3` |
-| `MODEL_URL` | `EmbeddingsService` | Padrão `http://localhost:8000/embeddings` |
-| `EMBEDDING_MODEL`, `EMBEDDING_DIMENSIONS` | Nenhuma referência no código da API encontrada | Estão no `.env.example`, mas a API atualmente fixa a dimensão em 384 e não lê o nome do modelo |
+| Variável                                            | Consumidor                                     | Observação                                                                                     |
+| --------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | Compose do banco                               | Credenciais/nome do banco local                                                                |
+| `POSTGRES_PORT`                                     | Compose do banco                               | Porta publicada no host; exemplo no arquivo é `5433`, dentro do container permanece `5432`     |
+| `DATABASE_URL`                                      | Prisma e configuração Prisma                   | URL de conexão usada pela API e migrations                                                     |
+| `REDIS_PORT`                                        | Compose do Redis e provider Redis              | Host publica a porta configurada; client usa `6379` por padrão                                 |
+| `REDIS_HOST`                                        | Provider Redis                                 | Padrão `localhost`; variável usada pela aplicação, mas não consta no `.env.example` atual      |
+| `PORT`                                              | `src/main.ts`                                  | Porta HTTP da API; padrão `3000`                                                               |
+| `JWT_ACCESS_TOKEN_SECRET`                           | Auth/JWT                                       | Segredo do token de acesso                                                                     |
+| `JWT_REFRESH_TOKEN_SECRET`                          | Auth/JWT                                       | Segredo do token de renovação                                                                  |
+| `S3_ACCESS_ID`, `S3_SECRET_ACCESS_KEY`              | Provider S3                                    | Obrigatórios pelo provider; use credenciais apropriadas ao LocalStack em desenvolvimento       |
+| `S3_ENDPOINT`                                       | Provider S3                                    | Padrão `http://localhost:4566`                                                                 |
+| `S3_REGION`                                         | Provider S3                                    | Padrão `us-east-1`                                                                             |
+| `S3_BUCKET`                                         | Serviço S3                                     | Padrão `documentsflows3`                                                                       |
+| `MODEL_URL`                                         | `EmbeddingsService`                            | Padrão `http://localhost:8000/embeddings`                                                      |
+| `EMBEDDING_MODEL`, `EMBEDDING_DIMENSIONS`           | Nenhuma referência no código da API encontrada | Estão no `.env.example`, mas a API atualmente fixa a dimensão em 384 e não lê o nome do modelo |
 
 As variáveis do runtime das Lambdas são configuradas separadamente em `infra/localstack/lambdas/*/env.local.json`; consulte [`../infra/README.md`](../infra/README.md). Não copie credenciais entre ambientes.
 
@@ -167,27 +167,3 @@ npm run test:watch
 npm run test:cov
 npm run test:e2e
 ```
-
-Há um spec inicial em `src/app.controller.spec.ts`, mas ele importa `app.controller.ts` e `app.service.ts`, que não existem no código atual; também não foi encontrada a pasta `api/test/` referenciada pelo comando e2e. Esses testes devem ser revisados antes de tratá-los como validação do comportamento da API.
-
-## Pontos fortes
-
-- **Módulos Nest separados por domínio:** autenticação, usuários, documentos e integrações têm módulos e serviços próprios, facilitando manutenção e evolução localizada.
-- **Controllers não fazem o trabalho do banco diretamente:** serviços coordenam o fluxo e repositories isolam chamadas Prisma.
-- **Upload direto ao storage:** a API emite uma URL temporária e não precisa transportar PDFs pelo processo HTTP da aplicação.
-- **Processamento assíncrono desacoplado:** SQS/Lambdas separam extração de PDF da criação de embeddings e permitem reprocessamento fora da requisição do usuário.
-- **Busca isolada por usuário:** a consulta híbrida aplica escopo ao `userId` autenticado.
-- **Migrations versionadas e schema declarado:** mudanças de persistência podem ser revisadas e aplicadas por ambiente.
-- **Validação de DTO e filtro de erros comum:** o bootstrap aplica `ValidationPipe` e `AppExceptionFilter` para respostas consistentes.
-
-## Pontos de atencao e melhorias sugeridas
-
-São observações do código atual; não foram alteradas nesta tarefa:
-
-- `AuthService.register()` retorna o objeto que `UsersRepository.createUser()` recebe do Prisma; o modelo inclui `passworldHash`. Revise a resposta pública para garantir que nunca exponha o hash da senha.
-- O formulário de registro do frontend ainda não chama a API. Além disso, o backend espera `passworld` e exige `x-idempotency-key`; alinhe o contrato antes de implementar a integração.
-- `DocumentsService.deleteDocument()` chama a exclusão S3 com `document.fileName`, enquanto o objeto é criado com `document.fileKey`. Verifique se a exclusão usa a chave correta.
-- CORS está fixado em `http://localhost:5173`; para outros hosts/ambientes será necessário configurar a origem.
-- `REDIS_HOST`, `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET` e `PORT` têm defaults no código, mas não estão todos explicitados no `.env.example`.
-- O `.env.example` lista `EMBEDDING_MODEL` e `EMBEDDING_DIMENSIONS`, mas a API não os consome atualmente.
-- O teste e2e aponta para uma pasta ausente e o teste unitário remete a arquivos ausentes; validar e atualizar a suíte em tarefa própria.
