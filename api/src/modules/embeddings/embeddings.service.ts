@@ -34,7 +34,7 @@ export class EmbeddingsService {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ texts: [text] }),
+          body: JSON.stringify({ texts: [text], kind: 'query' }),
           signal: AbortSignal.timeout(EmbeddingsService.TIMEOUT_MS),
         });
 

@@ -82,11 +82,29 @@ export class DocumentsService {
   }
 
   async search(userId: string, question: string) {
-    const result = await this.embeddingsService.embedQuery(question);
+    if (question == '' || question == undefined) {
+      return [];
+    }
 
-    const vector = `[${result.join(',')}]`;
+    const embedding = await this.embeddingsService.embedQuery(question);
 
-    return await this.documentRepository.searchHybrid(userId, vector, question);
+    const vector = `[${embedding.join(',')}]`;
+
+    const results = await this.documentRepository.searchHybrid(
+      userId,
+      vector,
+      question,
+    );
+
+    return results.map((result) => {
+      return {
+        id: result.id,
+        documentId: result.document_id,
+        pageNumber: result.page_number,
+        fileName: result.file_name,
+        content: result.content,
+      };
+    });
   }
 
   async deleteDocument(userId: string, documentId: string) {
