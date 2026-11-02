@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import logo from '@/assets/logo.png'
-import Button from '@/components/ui/button/Button.vue'
-import Checkbox from '@/components/ui/checkbox/Checkbox.vue'
-import Input from '@/components/ui/input/Input.vue'
-import { UserIcon, LockIcon } from '@lucide/vue'
+  import logo from '@/assets/logo.png'
+  import Button from '@/components/ui/button/Button.vue'
+  import Input from '@/components/ui/input/Input.vue'
+  import { LockIcon, UserIcon } from '@lucide/vue'
+  import { Field, Form } from 'vee-validate'
+  import { useRegisterController } from '@/features/auth/composables/useRegister'
+
+const { errorMessage, isError, isPending, isSuccess, onSubmit, schema } =
+  useRegisterController()
 </script>
 
 <template>
@@ -46,49 +50,122 @@ import { UserIcon, LockIcon } from '@lucide/vue'
         <div class="flex flex-col gap-8 lg:gap-10">
           <div class="flex flex-col text-center lg:text-left">
             <span class="text-2xl font-medium sm:text-3xl">
-              Bem-vindo de volta!
+              Crie sua conta
             </span>
             <span class="text-base">
-              Faça o login para continuar.
+              Cadastre-se para continuar.
             </span>
           </div>
 
-          <form class="flex flex-col gap-5">
-            <div class="relative flex items-center">
-              <UserIcon class="absolute w-6 h-6 left-3" />
-              <Input
-                class="w-full h-11 pl-11"
-                placeholder="E-mail do usuário"
-              />
-            </div>
-
-            <div class="relative flex items-center">
-              <LockIcon class="absolute w-6 h-6 left-3" />
-              <Input
-                class="w-full h-11 pl-11"
-                type="password"
-                placeholder="Senha"
-              />
-            </div>
-
-            <div
-              class="w-full flex flex-col gap-3 pt-1 pb-4 text-sm
-                     sm:flex-row sm:justify-between sm:items-center sm:text-base
-                     lg:pt-3 lg:pb-7"
-            >
-              <div class="flex gap-2 items-center">
-                <Checkbox class="border-background" />
-                <span>Lembre-se de mim!</span>
+          <Form
+            :validation-schema="schema"
+            class="flex flex-col gap-5"
+            @submit="onSubmit"
+          >
+            <Field name="name" v-slot="{ field, errorMessage: fieldError }">
+              <div>
+                <label for="register-name" class="mb-1 block text-sm font-medium">
+                  Nome
+                </label>
+                <div class="relative flex items-center">
+                  <UserIcon class="absolute left-3 h-5 w-5" aria-hidden="true" />
+                  <Input
+                    v-bind="field"
+                    id="register-name"
+                    name="name"
+                    class="h-11 w-full pl-11"
+                    placeholder="Seu nome"
+                    autocomplete="name"
+                    :aria-invalid="Boolean(fieldError)"
+                    :aria-describedby="fieldError ? 'register-name-error' : undefined"
+                  />
+                </div>
+                <span
+                  v-if="fieldError"
+                  id="register-name-error"
+                  class="text-sm text-red-500"
+                >
+                  {{ fieldError }}
+                </span>
               </div>
-              <a href="#" class="text-blue-400 underline">
-                Esqueceu sua senha?
-              </a>
-            </div>
+            </Field>
 
-            <Button class="w-full h-11">
-              Entrar
+            <Field name="email" v-slot="{ field, errorMessage: fieldError }">
+              <div>
+                <label for="register-email" class="mb-1 block text-sm font-medium">
+                  E-mail
+                </label>
+                <div class="relative flex items-center">
+                  <UserIcon class="absolute left-3 h-5 w-5" aria-hidden="true" />
+                  <Input
+                    v-bind="field"
+                    id="register-email"
+                    name="email"
+                    type="email"
+                    class="h-11 w-full pl-11"
+                    placeholder="E-mail do usuário"
+                    autocomplete="email"
+                    :aria-invalid="Boolean(fieldError)"
+                    :aria-describedby="fieldError ? 'register-email-error' : undefined"
+                  />
+                </div>
+                <span
+                  v-if="fieldError"
+                  id="register-email-error"
+                  class="text-sm text-red-500"
+                >
+                  {{ fieldError }}
+                </span>
+              </div>
+            </Field>
+
+            <Field name="password" v-slot="{ field, errorMessage: fieldError }">
+              <div>
+                <label for="register-password" class="mb-1 block text-sm font-medium">
+                  Senha
+                </label>
+                <div class="relative flex items-center">
+                  <LockIcon class="absolute left-3 h-5 w-5" aria-hidden="true" />
+                  <Input
+                    v-bind="field"
+                    id="register-password"
+                    name="password"
+                    type="password"
+                    class="h-11 w-full pl-11"
+                    placeholder="Mínimo de 8 caracteres"
+                    autocomplete="new-password"
+                    :aria-invalid="Boolean(fieldError)"
+                    :aria-describedby="fieldError ? 'register-password-error' : undefined"
+                  />
+                </div>
+                <span
+                  v-if="fieldError"
+                  id="register-password-error"
+                  class="text-sm text-red-500"
+                >
+                  {{ fieldError }}
+                </span>
+              </div>
+            </Field>
+
+            <p v-if="isError" class="text-sm text-red-500" role="alert">
+              {{ errorMessage }}
+            </p>
+            <p v-if="isSuccess" class="text-sm text-green-600" role="status">
+              Cadastro realizado com sucesso.
+            </p>
+
+            <Button class="h-11 w-full" type="submit" :disabled="isPending">
+              {{ isPending ? 'Cadastrando...' : 'Cadastrar' }}
             </Button>
-          </form>
+          </Form>
+
+          <p class="text-center text-sm">
+            Já possui uma conta?
+            <RouterLink :to="{ name: 'login' }" class="text-blue-400 underline">
+              Entrar
+            </RouterLink>
+          </p>
         </div>
       </div>
     </section>

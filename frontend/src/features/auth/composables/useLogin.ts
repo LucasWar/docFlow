@@ -44,8 +44,17 @@ export function userLoginController() {
     validationSchema: schema,
   })
 
-  async function onSubmit(values: LoginForm) {
-    mutate(values)
+  function onSubmit(values: Record<string, unknown>) {
+    const result = zodSchema.safeParse(values)
+
+    if (!result.success) {
+      toast.warning(result.error.issues[0]?.message ?? 'Dados de acesso inválidos.', {
+        position: 'top-center',
+      })
+      return
+    }
+
+    mutate(result.data)
   }
 
   return {

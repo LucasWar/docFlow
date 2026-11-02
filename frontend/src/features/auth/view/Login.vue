@@ -106,6 +106,12 @@ const {onSubmit, schema} = userLoginController();
               Entrar
             </Button>
           </Form>
+          <p class="text-center text-sm">
+            Não tem uma conta?
+            <RouterLink :to="{ name: 'register' }" class="text-blue-400 underline">
+              Cadastre-se
+            </RouterLink>
+          </p>
         </div>
       </div>
     </section>

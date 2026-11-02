@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import Login from '@/features/auth/view/Login.vue'
+import Register from '@/features/auth/view/Register.vue'
 import MenuLayout from '@/layouts/MenuLayout.vue'
 import Dashboard from '@/features/dashboard/Dashboard.vue'
 import Documents from '@/features/documents/Documents.vue'
@@ -15,6 +16,11 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: Login,
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: Register,
     },
     {
       path: '/',
