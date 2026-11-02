@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { FileIcon, TextIcon, FileTextIcon } from 'lucide-vue-next'
+  import { FileIcon, TextIcon, FileTextIcon, FileSearchCorner } from 'lucide-vue-next'
   import DashboardCard from './components/DashboardCard.vue'
   import Card from '@/components/ui/card/Card.vue'
   import CardHeader from '@/components/ui/card/CardHeader.vue'
@@ -7,6 +7,8 @@
   import DocumentList from './components/DocumentList.vue'
   import { useDashboardController } from './composables/useDashboard.ts'
   import Spinner from '@/components/ui/spinner/Spinner.vue'
+  import Button from '@/components/ui/button/Button.vue'
+  import { ChevronRightIcon } from '@lucide/vue'
 
   const {numRecords, loadingDocumets, loadingResume, documents} = useDashboardController()
 
@@ -21,7 +23,7 @@
       </span>
     </header>
 
-    <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
       <DashboardCard
         :loading="loadingResume"
         :icon="{ iconFile: FileIcon, color: 'text-white', bgColor: 'bg-blue-600' }"
@@ -43,13 +45,13 @@
         sub-title="Número de páginas para pesquisa"
         :total="numRecords?.numPages ?? 0"
       />
-      <DashboardCard
+      <!-- <DashboardCard
         :loading="loadingResume"
         :icon="{ iconFile: FileIcon, bgColor: 'bg-green-300' }"
         title="teste"
         sub-title="teste2"
         :total="25"
-      />
+      /> -->
     </section>
 
     <section class="grid flex-1 grid-cols-1 gap-4 xl:grid-cols-3 xl:min-h-0">
@@ -72,11 +74,29 @@
         </CardContent>
       </Card>
 
-      <Card class="flex min-h-64 flex-col xl:min-h-0">
-        <CardHeader>
-          <span class="font-semibold">Novo card</span>
-        </CardHeader>
-        <CardContent class="min-h-0 flex-1 overflow-y-auto">
+      <Card class="flex min-h-64 flex-col xl:min-h-0 bg-gray-400/15">
+        <CardContent class="min-h-0 flex-1">
+          <div class="w-full h-full flex flex-col items-center justify-center gap-5">
+            <div class="w-8/9 flex flex-col gap-2">
+              <div class="bg-blue-300 p-3 rounded-full w-min">
+                <FileSearchCorner 
+                  class="w-10 h-10 text-blue-600"
+                />
+              </div>
+              <span class="font-medium text-2xl">Precisa encontrar algo ?</span>
+              <span class="text-lg">Use busca especializada para encontrar informações em seus documentos !</span>
+            </div>
+            <div class="w-full pl-8">
+              <RouterLink
+                to="/search"
+              >
+                <Button class="font-medium">
+                  <span class="text-lg p-12">Ir para a busca</span>
+                  <ChevronRightIcon />
+                </Button>
+              </RouterLink>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </section>

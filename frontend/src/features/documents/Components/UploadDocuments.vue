@@ -3,7 +3,7 @@ import { useTemplateRef } from 'vue'
 import { useDropZone } from '@vueuse/core'
 import { ChevronLeftIcon, CloudUploadIcon, FileTextIcon, UploadIcon } from 'lucide-vue-next'
 import Button from '@/components/ui/button/Button.vue'
-import { formatFileSize, MAX_FILE_SIZE_MB, useDocumentUpload } from '@/composables/useUploadDocument';
+import { formatFileSize, MAX_FILE_SIZE_MB, useDocumentUpload } from '@/features/documents/composable/useUploadDocument';
 
 
 const emit = defineEmits<{

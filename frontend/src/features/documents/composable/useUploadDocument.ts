@@ -1,8 +1,8 @@
 import { computed, ref } from 'vue'
 import { useMutation } from '@tanstack/vue-query'
-import { documentsService } from '@/services/documents'
 import { byteForMegabyte } from '@/lib/byte-for-megabyte'
 import { extractType } from '@/lib/extract-type'
+import { documentsService } from '../services'
 
 export const MAX_FILE_SIZE_MB = 20
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024

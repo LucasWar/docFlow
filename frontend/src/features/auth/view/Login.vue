@@ -4,7 +4,7 @@ import Button from '@/components/ui/button/Button.vue'
 import Checkbox from '@/components/ui/checkbox/Checkbox.vue'
 import Input from '@/components/ui/input/Input.vue'
 import { UserIcon, LockIcon } from '@lucide/vue'
-import { userLoginController } from '@/composables/useLogin'
+import { userLoginController } from '@/features/auth/composables/useLogin'
 import { Form, Field } from 'vee-validate'
 
 const {onSubmit, schema} = userLoginController();

@@ -1,5 +1,4 @@
-import type { UserData } from '@/types/UserData.type'
-import { api } from '../api'
+import { api } from '@/services/api'
 import type { StatusDocument } from '@/shared/types/status-document'
 
 interface ListDocumentsResponse {
@@ -14,6 +13,7 @@ interface ListDocumentsData {
   pageCount: number
   status: StatusDocument
   createdAt: string
+  errorMessage: string
 }
 
 interface Pagination {

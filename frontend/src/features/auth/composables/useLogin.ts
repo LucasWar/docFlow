@@ -2,11 +2,11 @@ import { z } from 'zod'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
-import { authService } from '@/services/auth'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { toast } from 'vue-sonner'
 import { getErrorMessage } from '@/lib/get-error-message'
+import { authService } from '../services'
 
 export function userLoginController() {
   const auth = useAuthStore()

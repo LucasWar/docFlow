@@ -1,4 +1,4 @@
-import { api } from '../api'
+import { api } from '@/services/api'
 import type { LoginResponse } from '@/types/login-response'
 
 export async function logout() {

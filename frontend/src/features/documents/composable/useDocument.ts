@@ -1,7 +1,8 @@
-import { documentsService } from '@/services/documents'
 import { StatusDocument } from '@/shared/types/status-document'
-import { useQuery } from '@tanstack/vue-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { computed, ref, watch } from 'vue'
+import { toast } from 'vue-sonner'
+import { documentsService } from '../services'
 
 interface FilterDocuments {
   fileName?: string
@@ -16,6 +17,8 @@ export function useDocumentController() {
   const search = ref('')
   const selectedStatus = ref<StatusDocument | 'all'>('all')
 
+  const queryClient = useQueryClient()
+
   const filter = computed<FilterDocuments>(() => ({
     fileName: search.value,
     limit: pageSize.value,
@@ -29,6 +32,23 @@ export function useDocumentController() {
       return await documentsService.listDocuments(filter.value)
     },
   })
+
+  const { mutate: deleteDocumentMutate } = useMutation({
+    mutationFn: async (documentId: string) => {
+      return await documentsService.deleteDocument(documentId)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['listDocuments'] })
+      toast.success('Documento deletado com sucesso')
+    },
+    onError: (error) => {
+      toast.warning('Error ao deletar documento')
+    },
+  })
+
+  async function handleDeleteDocument(documentId: string) {
+    await deleteDocumentMutate(documentId)
+  }
 
   async function hanldedownloadDocument(documentId: string) {
     await documentsService.download(documentId)
@@ -46,5 +66,6 @@ export function useDocumentController() {
     selectedStatus,
     pageSize,
     hanldedownloadDocument,
+    handleDeleteDocument,
   }
 }

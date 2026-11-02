@@ -1,7 +1,8 @@
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
-import { authService } from './auth'
+
 import { useRouter } from 'vue-router'
+import { authService } from '@/features/auth/services'
 
 const router = useRouter()
 

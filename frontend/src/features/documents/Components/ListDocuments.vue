@@ -22,17 +22,16 @@ import { cn } from 'cn'
 import { documentStatusMapper } from '../mappers/document-status.mapper'
 import { DocumentStatus } from '../enums/document-status'
 import AppPagination from '@/components/AppPagination.vue'
-import { useDocumentController } from '@/composables/useDocument'
 import Spinner from '@/components/ui/spinner/Spinner.vue'
 import { formatarData } from '@/lib/fomat-data'
 import DropdownMenu from '@/components/ui/dropdown-menu/DropdownMenu.vue'
 import DropdownMenuTrigger from '@/components/ui/dropdown-menu/DropdownMenuTrigger.vue'
 import DropdownMenuContent from '@/components/ui/dropdown-menu/DropdownMenuContent.vue'
 import DropdownMenuItem from '@/components/ui/dropdown-menu/DropdownMenuItem.vue'
-
 import { DownloadIcon, EyeIcon, TrashIcon } from 'lucide-vue-next'
+import { useDocumentController } from '../composable/useDocument'
 
-const { documents, pagination, isLoading, currentPage, search, selectedStatus, pageSize, hanldedownloadDocument } = useDocumentController()
+const { documents, pagination, isLoading, currentPage, search, selectedStatus, pageSize, hanldedownloadDocument, handleDeleteDocument } = useDocumentController()
 
 const statuses = Object.values(DocumentStatus)
 
@@ -187,7 +186,10 @@ const emit = defineEmits<{
                     </div>
                     <div class="flex min-w-0 flex-col">
                       <span class="max-w-48 truncate font-medium text-gray-800 lg:max-w-72 xl:max-w-96">
-                        {{ doc.fileName }}
+                        <div class="flex flex-col">
+                          {{ doc.fileName }}
+                          <span :v-model="doc.errorMessage" class="font-normal text-sm text-red-400">{{ doc.errorMessage }}</span>
+                        </div>
                       </span>
                 
                       <span class="text-xs text-gray-400 lg:hidden">
@@ -242,8 +244,10 @@ const emit = defineEmits<{
                         Vizualizar
                       </DropdownMenuItem>
                       <DropdownMenuItem class="hover:bg-red-400">
-                        <TrashIcon />
-                        Apagar
+                        <div class="flex gap-2" @click="handleDeleteDocument(doc.id)">
+                          <TrashIcon />
+                          Apagar
+                        </div>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

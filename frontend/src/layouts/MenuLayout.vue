@@ -5,7 +5,6 @@ import logo from '@/assets/logo.png'
 import {
   HouseIcon,
   FileTextIcon,
-  SettingsIcon,
   SearchIcon,
   MenuIcon,
   XIcon,
@@ -17,7 +16,8 @@ import AvatarImage from '@/components/ui/avatar/AvatarImage.vue'
 import Button from '@/components/ui/button/Button.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useMutation } from '@tanstack/vue-query'
-import { authService } from '@/services/auth'
+import { authService } from '@/features/auth/services'
+
 
 const auth = useAuthStore()
 const route = useRoute()
@@ -35,7 +35,6 @@ const navItems = [
   { to: '/', label: 'Início', icon: HouseIcon },
   { to: '/documents', label: 'Documentos', icon: FileTextIcon },
   { to: '/search', label: 'Buscar', icon: SearchIcon },
-  { to: '/configuracoes', label: 'Configurações', icon: SettingsIcon },
 ]
 
 // Controla o drawer no mobile (no desktop a sidebar é sempre visível)

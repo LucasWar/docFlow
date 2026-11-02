@@ -1,4 +1,4 @@
-import { documentsService } from '@/services/documents'
+import { documentsService } from '@/features/documents/services'
 import { useQuery } from '@tanstack/vue-query'
 
 export function useDashboardController() {

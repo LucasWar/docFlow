@@ -1,5 +1,5 @@
+import { api } from '@/services/api'
 import type { LoginData } from '@/types/login-data.type'
-import { api } from '../api'
 import type { LoginResponse } from '@/types/login-response'
 
 export async function login(credentials: LoginData) {
