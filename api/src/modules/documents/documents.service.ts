@@ -117,7 +117,7 @@ export class DocumentsService {
       throw new NotFoundException('Document not found');
     }
 
-    await this.s3ClientService.deleteObjectS3(document.fileName);
+    await this.s3ClientService.deleteObjectS3(document.fileKey);
 
     await this.documentRepository.deleteDocumentById(userId, documentId);
   }

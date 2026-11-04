@@ -43,7 +43,7 @@ export class UsersService {
   }
 
   async validateCredentials(credentials: CredentialsUserType) {
-    const { email, passworld } = credentials;
+    const { email, password } = credentials;
 
     const user = await this.userRepository.findEmail(email);
 
@@ -55,12 +55,9 @@ export class UsersService {
       );
     }
 
-    const validatePassworld = await bcrypt.compare(
-      passworld,
-      user.passworldHash,
-    );
+    const validatepassword = await bcrypt.compare(password, user.passwordHash);
 
-    if (!validatePassworld) {
+    if (!validatepassword) {
       throw new AppException(
         'Credenciais invalidas',
         ErrorCode.INVALID_CREDENTIALS,

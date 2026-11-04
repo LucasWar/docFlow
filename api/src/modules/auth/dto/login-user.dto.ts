@@ -9,5 +9,5 @@ export class LoginUserDto {
   @IsString()
   @IsNotEmpty()
   @MinLength(8)
-  passworld!: string;
+  password!: string;
 }

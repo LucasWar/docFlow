@@ -9,5 +9,5 @@ export class CreateAuthDto {
   @IsString()
   @IsEmail()
   @IsNotEmpty()
-  passworld!: string;
+  password!: string;
 }

@@ -56,16 +56,20 @@ export class AuthService {
   }
 
   async register(registerUserDto: RegisterUserDto) {
-    const { passworld, email, name } = registerUserDto;
-    const passworldHash = await bcrypt.hash(passworld, 7);
+    const { password, email, name } = registerUserDto;
+    const passwordHash = await bcrypt.hash(password, 7);
 
     const newUser = await this.userService.create({
       name,
       email,
-      passworldHash,
+      passwordHash,
     });
 
-    return newUser;
+    return {
+      id: newUser.id,
+      name: newUser.name,
+      email: newUser.email,
+    };
   }
 
   async authenticate(loginUserDto: LoginUserDto) {

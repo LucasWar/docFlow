@@ -17,13 +17,8 @@ import { IdempotencyInteceptor } from 'src/shared/interceptors/idempontecy-key.i
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('teste')
-  teste() {
-    return 'ola';
-  }
-
   @Post('register')
-  @UseInterceptors(IdempotencyInteceptor)
+  //@UseInterceptors(IdempotencyInteceptor)
   async create(@Body() registerUserDto: RegisterUserDto) {
     return await this.authService.register(registerUserDto);
   }

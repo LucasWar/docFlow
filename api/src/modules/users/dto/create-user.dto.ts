@@ -12,5 +12,5 @@ export class CreateUserDto {
 
   @IsString()
   @IsNotEmpty()
-  passworldHash!: string;
+  passwordHash!: string;
 }

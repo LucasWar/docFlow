@@ -86,7 +86,7 @@ As rotas não têm prefixo global configurado.
 | `GET`    | `/documents/:id/download` | Requer autenticação; retorna URL pré-assinada para download                   |
 | `DELETE` | `/documents/:id`          | Requer autenticação; exclui registro e tenta excluir o objeto                 |
 
-Os DTOs do cadastro/login usam o nome de propriedade `passworld` (com essa grafia). Consulte [Pontos de atencao](#pontos-de-atencao-e-melhorias-sugeridas) antes de integrar um novo cliente.
+Os DTOs do cadastro/login usam o nome de propriedade `password` (com essa grafia). Consulte [Pontos de atencao](#pontos-de-atencao-e-melhorias-sugeridas) antes de integrar um novo cliente.
 
 ## Integracoes e fluxos
 

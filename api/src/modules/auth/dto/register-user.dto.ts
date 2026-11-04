@@ -13,5 +13,5 @@ export class RegisterUserDto {
   @IsString()
   @IsNotEmpty()
   @MinLength(8)
-  passworld!: string;
+  password!: string;
 }

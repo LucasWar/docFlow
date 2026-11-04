@@ -1,4 +1,4 @@
 export type CredentialsUserType = {
   email: string;
-  passworld: string;
+  password: string;
 };
