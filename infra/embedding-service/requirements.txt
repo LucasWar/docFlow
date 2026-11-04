@@ -1,6 +1,7 @@
 fastapi
 uvicorn
+pydantic
+numpy
 onnxruntime
 transformers
 huggingface_hub
-numpy

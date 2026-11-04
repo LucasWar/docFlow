@@ -1,27 +1,66 @@
+# infra/docker-compose.yml
+name: docflow
+
 services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: docflow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - docflow
+
+  redis:
+    image: redis:8-alpine
+    container_name: docflow-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - docflow
+
   localstack:
     image: localstack/localstack:latest
     container_name: docflow-localstack
     restart: unless-stopped
-
+    profiles: ["aws"] # opcional
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
       - "4566:4566"
-
     environment:
       LOCALSTACK_AUTH_TOKEN: ${LOCALSTACK_AUTH_TOKEN}
-
       SERVICES: s3,sqs,lambda,cloudwatch,iam,logs
-
       LAMBDA_DOCKER_FLAGS: >-
         --add-host=host.docker.internal:host-gateway
-
     volumes:
-      - "./localstack:/etc/localstack/init/ready.d"
+      - "./localstack/init:/etc/localstack/init/ready.d"
       - "./localstack/lambdas/embedding_lambda/index.zip:/opt/lambdas/embedding_lambda/index.zip"
       - "./localstack/lambdas/embedding_lambda/env.local.json:/opt/lambdas/embedding_lambda/env.local.json"
       - "./localstack/lambdas/process_document_lambda/index.zip:/opt/lambdas/process_document_lambda/index.zip"
       - "./localstack/lambdas/process_document_lambda/env.local.json:/opt/lambdas/process_document_lambda/env.local.json"
-      - "./localstack_data:/var/lib/localstack"
+      - "localstack_data:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - docflow
@@ -30,23 +69,27 @@ services:
     platform: linux/amd64
     build:
       context: ./embedding-service
-    container_name: local-embeddings
+    container_name: embeddings
+    profiles: ["aws"] # opcional
     ports:
       - "8000:8000"
     environment:
       MODEL_DIR: /opt/model
+      MODEL_NAME: multilingual-e5-small
       ORT_THREADS: "2"
       MAX_LENGTH: "256"
     restart: unless-stopped
-    mem_limit: 1g
+    mem_limit: 2g
     cpus: 2.0
     networks:
       - docflow
 
 networks:
   docflow:
-    external: true
+    name: docflow
+    driver: bridge
 
 volumes:
+  postgres_data:
+  redis_data:
   localstack_data:
-  # embedding-model-cache:
