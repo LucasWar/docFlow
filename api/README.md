@@ -163,7 +163,14 @@ Comandos declarados no `package.json`:
 
 ```bash
 npm test
+npm test -- --runInBand --testPathPatterns=service.spec
+npm test -- --runInBand --testPathPatterns=integration
 npm run test:watch
 npm run test:cov
 npm run test:e2e
 ```
+
+Os testes unitários ficam ao lado de cada service em `*.service.spec.ts`; os testes de
+integração usam `*.integration.spec.ts`. As integrações exercitam o encadeamento de
+services/repositories e substituem apenas os limites externos (banco, Redis, AWS e HTTP),
+sem exigir ou alterar dados de um ambiente local.
