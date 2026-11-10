@@ -1,17 +1,9 @@
-import {
-  Controller,
-  Post,
-  Body,
-  Res,
-  UseInterceptors,
-  HttpCode,
-} from '@nestjs/common';
+import { Controller, Post, Body, Res, HttpCode } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import type { Response } from 'express';
 import { CurrentRefreshToken } from 'src/shared/decorators/current-refresk-token.decorator';
-import { IdempotencyInteceptor } from 'src/shared/interceptors/idempontecy-key.interceptor';
 
 @Controller('auth')
 export class AuthController {

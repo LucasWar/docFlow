@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import bcrypt from 'bcrypt';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -16,6 +12,8 @@ import {
 import { randomUUID } from 'crypto';
 import { AuthRepository } from './auth.repository';
 import { RevokedReason } from './types/revoked-reason.enum';
+import { AppException } from 'src/shared/exception/app.exception';
+import { ErrorCode } from 'src/shared/enum/ErroCode.enum';
 
 @Injectable()
 export class AuthService {
@@ -44,7 +42,7 @@ export class AuthService {
 
     const accessToken = await this.jwtService.signAsync(accessTokenPayload, {
       secret: process.env.JWT_ACCESS_TOKEN_SECRET,
-      expiresIn: '15min',
+      expiresIn: '10s',
     });
 
     const refreshToken = await this.jwtService.signAsync(refreshTokenPayload, {
@@ -162,15 +160,19 @@ export class AuthService {
       throw new UnauthorizedException('Seção invalida');
     }
 
-    if (
-      recordRefreshToken.refreshExpiresAt.getTime() ===
-      new Date(Date.now()).getTime()
-    ) {
-      throw new UnauthorizedException('Seção expirou');
-    }
-
     if (recordRefreshToken.revokedAt) {
       throw new UnauthorizedException('Seção foi encerrada');
+    }
+
+    if (
+      recordRefreshToken.refreshExpiresAt.getTime() <=
+      new Date(Date.now()).getTime()
+    ) {
+      await this.authRepository.updateRevokedAtSession(
+        payloadRefreshToken.jti,
+        RevokedReason.EXPIRES,
+      );
+      throw new AppException('Seção expirou', ErrorCode.TOKEN_EXPIRED, 409);
     }
 
     return { payloadRefreshToken };

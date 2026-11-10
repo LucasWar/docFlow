@@ -9,6 +9,8 @@ import { StatusDocument } from './type/status-documents.enum';
 import { EmbeddingsService } from '../embeddings/embeddings.service';
 import { S3ClientService } from '../s3-client/s3-client.service';
 import { DocumentFilter } from './type/filter-document.type';
+import { AppException } from 'src/shared/exception/app.exception';
+import { ErrorCode } from 'src/shared/enum/ErroCode.enum';
 
 @Injectable()
 export class DocumentsService {
@@ -20,8 +22,19 @@ export class DocumentsService {
 
   async upload(createDocumentDto: CreateDocumentDto, userId: string) {
     const { fileName, size } = createDocumentDto;
+
     const fileId = crypto.randomUUID();
     const keyFile = `uploads/${fileId}-${fileName}`;
+    const url = await this.s3ClientService.presigned(keyFile);
+
+    if (!url) {
+      throw new AppException(
+        'Error presigned URL',
+        ErrorCode.PRESIGNED_URL_ERROR,
+        400,
+      );
+    }
+
     const document = await this.documentRepository.createDocument(
       {
         fileName,
@@ -29,7 +42,7 @@ export class DocumentsService {
         size,
         storageKey: 'uploads',
         userId,
-        status: StatusDocument.QUEUED,
+        status: StatusDocument.UPLOADED,
       },
       fileId,
     );
@@ -37,8 +50,6 @@ export class DocumentsService {
     if (!document) {
       throw new BadRequestException('Document is not create');
     }
-
-    const url = await this.s3ClientService.presigned(keyFile);
 
     return { url };
   }

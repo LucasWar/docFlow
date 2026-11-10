@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   DeleteObjectCommand,
@@ -12,6 +12,7 @@ import { S3_CLIENT } from './s3.provider';
 @Injectable()
 export class S3ClientService {
   private readonly bucket: string;
+  private readonly logger = new Logger(S3ClientService.name);
 
   constructor(
     @Inject(S3_CLIENT) private readonly s3Client: S3Client,
@@ -30,12 +31,21 @@ export class S3ClientService {
   }
 
   async deleteObjectS3(keyFile: string) {
-    await this.s3Client.send(
-      new DeleteObjectCommand({
-        Bucket: this.bucket,
-        Key: keyFile,
-      }),
-    );
+    try {
+      await this.s3Client.send(
+        new DeleteObjectCommand({
+          Bucket: this.bucket,
+          Key: keyFile,
+        }),
+      );
+    } catch (error) {
+      this.logger.error(
+        `Error deleting file from S3. Key: ${keyFile}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+
+      throw error;
+    }
   }
 
   async dowloadObjectS3(keyFile: string, fileName: string) {
