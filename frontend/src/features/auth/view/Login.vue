@@ -73,13 +73,13 @@ const {onSubmit, schema} = userLoginController();
                 <span v-if="errorMessage" class="text-sm text-red-500">{{ errorMessage }}</span>
               </div>
             </Field>
-            <Field name="passworld" v-slot="{ field, errorMessage }">
+            <Field name="password" v-slot="{ field, errorMessage }">
               <div>
                 <div class="relative flex items-center">
                   <LockIcon class="absolute w-6 h-6 left-3" />
                   <Input
                     v-bind="field"
-                    name="passworld"
+                    name="password"
                     class="w-full h-11 pl-11"
                     type="password"
                     placeholder="Senha"

@@ -81,7 +81,7 @@ O tratamento de mensagens usa `getErrorMessage()`, que reconhece códigos de err
 
 A tela de registro apresenta `name`, `email` e `password` e valida com `registerSchema` via vee-validate/Zod. O serviço `features/auth/services/register.ts` é um stub que lança erro indicando que a integração não está configurada; ele não faz `fetch`, Axios nem outra chamada. Portanto, **o formulário não conclui cadastro contra o backend atualmente**.
 
-O backend oferece `POST /auth/register`, mas espera `passworld` (grafia do DTO atual) e requer o header `x-idempotency-key`. Antes de ligar o serviço, alinhe o nome do campo e envie uma chave de idempotência. Consulte os detalhes do endpoint e do fluxo em [`../api/README.md`](../api/README.md).
+O backend oferece `POST /auth/register`, mas espera `password` (grafia do DTO atual) e requer o header `x-idempotency-key`. Antes de ligar o serviço, alinhe o nome do campo e envie uma chave de idempotência. Consulte os detalhes do endpoint e do fluxo em [`../api/README.md`](../api/README.md).
 
 ## Variaveis de ambiente
 

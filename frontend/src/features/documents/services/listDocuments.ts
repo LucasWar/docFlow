@@ -17,7 +17,7 @@ interface ListDocumentsData {
 }
 
 interface Pagination {
-  totalPage: number
+  totalPages: number
   total: number
   perPage: number
   page: number

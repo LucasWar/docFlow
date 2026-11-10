@@ -262,7 +262,7 @@ const emit = defineEmits<{
           v-model:page="currentPage"
           v-model:page-size="pageSize"
           :total="pagination.total"
-          :total-pages="pagination.totalPage"
+          :total-pages="pagination.totalPages"
           :page-size-options="[5, 8, 12, 10]"
           
         />

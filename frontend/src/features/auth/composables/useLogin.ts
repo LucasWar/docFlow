@@ -15,7 +15,7 @@ export function userLoginController() {
 
   const zodSchema = z.object({
     email: z.string().nonempty('E-mail não pode esta vázio').email('E-mail inválido'),
-    passworld: z.string().min(8, 'A senha precisa ter pelo menos 8 caracteres'),
+    password: z.string().min(8, 'A senha precisa ter pelo menos 8 caracteres'),
   })
 
   const router = useRouter()
